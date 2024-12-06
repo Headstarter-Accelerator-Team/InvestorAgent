@@ -1,4 +1,5 @@
 import SearchForm from "@/components/custom/search-form";
+import StockResults from "@/components/custom/stock-results";
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
           {/* Form Placement */}
           <SearchForm />
           {/* Stock Results Placement */}
+          <StockResults />
         </div>
       </main>
     </div>
