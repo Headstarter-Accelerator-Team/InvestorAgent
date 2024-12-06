@@ -4,11 +4,15 @@ import StockResults from "@/components/custom/stock-results";
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
-      <header>
-        <h1>Investor Agent 📈</h1>
+      <header className="border-b bg-white dark:bg-gray-800 shadow-sm">
+        <div className="container mx-auto py-4 px-4">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Investor Agent 📈
+          </h1>
+        </div>
       </header>
       <main>
-        <div className="container mx-auto">
+        <div className="container mx-auto py-8 px-4">
           {/* Form Placement */}
           <SearchForm />
           {/* Stock Results Placement */}
