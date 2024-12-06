@@ -2,15 +2,14 @@ import SearchForm from "@/components/custom/search-form";
 
 export default function Home() {
   return (
-    <>
-      <div id="header">
+    <div className="min-h-screen bg-background">
+      <header>
         <h1>Investor Agent 📈</h1>
-      </div>
-      <div id="body">
+      </header>
+      <main>
         {/* Form Placement */}
-
         <SearchForm />
-      </div>
-    </>
+      </main>
+    </div>
   );
 }
