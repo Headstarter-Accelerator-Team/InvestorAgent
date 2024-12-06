@@ -1,5 +1,6 @@
 import SearchForm from "@/components/custom/search-form";
 import StockResults from "@/components/custom/stock-results";
+import TopUrls from "@/components/custom/top-urls";
 
 export default function Home() {
   return (
@@ -17,6 +18,10 @@ export default function Home() {
           <SearchForm />
           {/* Stock Results Placement */}
           <StockResults />
+        </div>
+        <div className="container mx-auto py-8 px-4">
+          {/* Top Urls Placement */}
+          <TopUrls />
         </div>
       </main>
     </div>
