@@ -7,9 +7,10 @@ export default function Home() {
         <h1>Investor Agent 📈</h1>
       </header>
       <main>
-        {/* Form Placement */}
         <div className="container mx-auto">
+          {/* Form Placement */}
           <SearchForm />
+          {/* Stock Results Placement */}
         </div>
       </main>
     </div>
