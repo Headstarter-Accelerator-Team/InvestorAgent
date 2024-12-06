@@ -8,7 +8,9 @@ export default function Home() {
       </header>
       <main>
         {/* Form Placement */}
-        <SearchForm />
+        <div className="container mx-auto">
+          <SearchForm />
+        </div>
       </main>
     </div>
   );
