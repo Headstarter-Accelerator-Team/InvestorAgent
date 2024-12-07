@@ -176,9 +176,11 @@ def plot():
     plot_html = plot_stock_data(df, tickers, price_type)
     return plot_html
 
-@app.route('/news-sentiment', methods=['GET'])
+@app.route('/news-sentiment', methods=['POST'])
 def news_sentiment():
-    url = f'https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=TSLA&limit=100&apikey={ALPHA_VAN_API}'
+    data = request.json
+    tickers = data.get('tickers',[])
+    url = f'https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={tickers}&limit=100&apikey={ALPHA_VAN_API}'
     r = requests.get(url)
     data = r.json()
     structured_data = []
