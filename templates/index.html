@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flask App Test Interface</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center">Flask App Test Interface</h1>
+
+      <!-- Stock Information -->
+      <section class="mt-4">
+        <h3>Get Stock Information</h3>
+        <form id="stock-info-form">
+          <div class="mb-3">
+            <label for="stock-symbol" class="form-label">Stock Symbol</label>
+            <input
+              type="text"
+              id="stock-symbol"
+              class="form-control"
+              placeholder="Enter stock symbol (e.g., AAPL)"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Get Stock Info</button>
+        </form>
+        <pre id="stock-info-result" class="mt-3 bg-light p-3"></pre>
+      </section>
+
+      <!-- Plot Stock Data -->
+      <section class="mt-4">
+        <h3>Plot Stock Data</h3>
+        <form id="plot-form">
+          <div class="mb-3">
+            <label for="tickers" class="form-label"
+              >Tickers (comma-separated)</label
+            >
+            <input
+              type="text"
+              id="tickers"
+              class="form-control"
+              placeholder="Enter stock tickers (e.g., AAPL,MSFT)"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="price-type" class="form-label">Price Type</label>
+            <select id="price-type" class="form-control">
+              <option value="Close">Close</option>
+              <option value="Open">Open</option>
+              <option value="High">High</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Plot Data</button>
+        </form>
+        <div id="plot-result" class="mt-3"></div>
+      </section>
+
+      <!-- News Sentiment -->
+      <section class="mt-4">
+        <h3>Get News Sentiment</h3>
+        <button id="news-sentiment-btn" class="btn btn-primary">
+          Fetch News Sentiment
+        </button>
+        <pre id="news-sentiment-result" class="mt-3 bg-light p-3"></pre>
+      </section>
+
+      <!-- Query Pinecone -->
+      <section class="mt-4">
+        <h3>Query Pinecone Database</h3>
+        <form id="pinecone-form">
+          <div class="mb-3">
+            <label for="query-text" class="form-label">Query Text</label>
+            <input
+              type="text"
+              id="query-text"
+              class="form-control"
+              placeholder="Enter your query"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="top-k" class="form-label">Top K Results</label>
+            <input
+              type="number"
+              id="top-k"
+              class="form-control"
+              value="5"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Query Pinecone</button>
+        </form>
+        <pre id="pinecone-result" class="mt-3 bg-light p-3"></pre>
+      </section>
+    </div>
+
+    <script>
+      // Helper function to make GET requests
+      async function fetchGet(url, resultElement) {
+        const response = await fetch(url);
+        const data = await response.json();
+        document.getElementById(resultElement).textContent = JSON.stringify(
+          data,
+          null,
+          2
+        );
+      }
+
+      // Stock Info Form Submission
+      document
+        .getElementById("stock-info-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const symbol = document.getElementById("stock-symbol").value;
+          const url = `/stock-info?symbol=${symbol}`;
+          fetchGet(url, "stock-info-result");
+        });
+
+      // Plot Form Submission
+      document
+        .getElementById("plot-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const tickers = document.getElementById("tickers").value;
+          const priceType = document.getElementById("price-type").value;
+
+          const response = await fetch("/plot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tickers: tickers,
+              price_type: priceType,
+            }),
+          });
+
+          const html = await response.text();
+          document.getElementById("plot-result").innerHTML = html;
+        });
+
+      // News Sentiment Button Click
+      document
+        .getElementById("news-sentiment-btn")
+        .addEventListener("click", async () => {
+          fetchGet("/news-sentiment", "news-sentiment-result");
+        });
+
+      // Pinecone Query Form Submission
+      document
+        .getElementById("pinecone-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const query = document.getElementById("query-text").value;
+          const topK = document.getElementById("top-k").value;
+
+          const response = await fetch("/query-pinecone", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: query, top_k: topK }),
+          });
+
+          const data = await response.json();
+          document.getElementById("pinecone-result").textContent =
+            JSON.stringify(data, null, 2);
+        });
+    </script>
+  </body>
+</html>
