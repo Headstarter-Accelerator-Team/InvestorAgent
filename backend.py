@@ -131,9 +131,11 @@ def query_pinecone():
 def home():
     return render_template('index.html')
 
-@app.route('/stock-info', methods=['GET'])
+@app.route('/stock-info', methods=['POST'])
 def stock_info():
-    symbol = request.args.get('symbol', 'AAPL')
+    # Extract query parameters
+    data = request.json
+    symbol = data.get("symbol", "")
     info = get_stock_info(symbol)
     return jsonify(info)
 

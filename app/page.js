@@ -1,5 +1,6 @@
 "use client";
 import SearchForm from "@/components/custom/search-form";
+import StockInfo from "@/components/custom/stock-info";
 import StockResults from "@/components/custom/stock-results";
 import TopUrls from "@/components/custom/top-urls";
 import { useState } from "react";
@@ -17,7 +18,7 @@ export default function Home() {
           </h1>
         </div>
       </header>
-      <main>
+      <main className="flex-1 p-8 overflow-auto">
         <div className="container mx-auto py-8 px-4">
           {/* Form Placement */}
           <SearchForm
@@ -32,9 +33,10 @@ export default function Home() {
             queryMatches={queryMatches}
           />
         </div>
-        <div className="container mx-auto py-8 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Top Urls Placement */}
           <TopUrls />
+          <StockInfo />
         </div>
       </main>
     </div>
