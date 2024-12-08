@@ -1,8 +1,13 @@
+"use client";
 import SearchForm from "@/components/custom/search-form";
 import StockResults from "@/components/custom/stock-results";
 import TopUrls from "@/components/custom/top-urls";
+import { useState } from "react";
 
 export default function Home() {
+  const [queryMatches, setQueryMatches] = useState([]);
+  const [queryLLMResponse, setQueryLLMResponse] = useState("");
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-white dark:bg-gray-800 shadow-sm">
@@ -15,9 +20,17 @@ export default function Home() {
       <main>
         <div className="container mx-auto py-8 px-4">
           {/* Form Placement */}
-          <SearchForm />
+          <SearchForm
+            queryMatches={queryMatches}
+            setQueryMatches={setQueryMatches}
+            queryLLMResponse={queryLLMResponse}
+            setQueryLLMResponse={setQueryLLMResponse}
+          />
           {/* Stock Results Placement */}
-          <StockResults />
+          <StockResults
+            queryLLMResponse={queryLLMResponse}
+            queryMatches={queryMatches}
+          />
         </div>
         <div className="container mx-auto py-8 px-4">
           {/* Top Urls Placement */}

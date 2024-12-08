@@ -8,12 +8,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 
 
-export default function SearchForm() {
+export default function SearchForm({ queryMatches, setQueryMatches, queryLLMResponse, setQueryLLMResponse}) {
     const [query, setQuery] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log("User searched: ", query);
+        try {
+    
+            const response = await fetch(`/api/query-pinecone`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({query: query, top_k: 3})
+            })
+            
+            if(!response.ok){
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+    
+            // console.log(result);
+
+            const llm_response = result.llm_response;
+            console.log("LLM Response: ", llm_response);
+            setQueryLLMResponse(llm_response);
+            
+            const pinecone_results = result.pinecone_results;
+            console.log("Pinecone Response: ", pinecone_results);
+            setQueryMatches(pinecone_results);
+
+        } catch (error) {
+            console.log("Error fetching matches for query.");
+            console.error("Failed to fetch:", error);
+        }
+
+
     }
 
     return (<form onSubmit={handleSubmit} className="space-y-4">

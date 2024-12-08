@@ -3,73 +3,122 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Search } from "lucide-react";
+import { Info } from "lucide-react";
 
 
-const mockStocks = [
-    { symbol: 'CRDO', name: 'Credo Technology Group', sector: 'Technology', marketCap: '$2.5B', volume: 1000000, recommendation: 'BUY', reason: "AI play being double-upgraded, forecast increase of almost 200%" },
-    { symbol: 'SOFI', name: 'SoFi Technologies', sector: 'Financial Services', marketCap: '$7.5B', volume: 5000000, recommendation: 'BUY', reason: "Flashing bullish momentum" },
-    { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Technology', marketCap: '$1.2T', volume: 30000000, recommendation: 'BUY', reason: "Part of 'Magnificent Seven', expected to perform well" },
-    { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Automotive', marketCap: '$780B', volume: 100000000, recommendation: 'BUY', reason: "Experiencing a surge, strong sales and innovative technology" },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.', sector: 'Consumer Cyclical', marketCap: '$1.5T', volume: 50000000, recommendation: 'BUY', reason: "Part of 'Magnificent Seven', expected to perform well" },
-    { symbol: 'GM', name: 'General Motors', sector: 'Automotive', marketCap: '$50B', volume: 15000000, recommendation: 'BUY', reason: "Surge due to offloading stakes in a battery plant" },
-    { symbol: 'ETH', name: 'Ethereum', sector: 'Cryptocurrency', marketCap: '$260B', volume: 20000000, recommendation: 'BUY', reason: "Strong performance in the crypto market" },
-    { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Automotive', marketCap: '$780B', volume: 100000000, recommendation: 'SELL', reason: "Predicted decline in global sales due to slowdown in Europe and US" },
-    { symbol: 'META', name: 'Meta Platforms', sector: 'Technology', marketCap: '$820B', volume: 25000000, recommendation: 'SELL', reason: "Decline due to concerns about content moderation and misinformation" },
-    { symbol: 'CRWD', name: 'CrowdStrike Holdings', sector: 'Technology', marketCap: '$40B', volume: 5000000, recommendation: 'NEUTRAL', reason: "Expected to have neutral momentum" },
-    { symbol: 'MSTR', name: 'MicroStrategy', sector: 'Technology', marketCap: '$6B', volume: 1000000, recommendation: 'NEUTRAL', reason: "Experiencing some hiccups, but overall neutral momentum" },
-    { symbol: 'CHPT', name: 'ChargePoint Holdings', sector: 'Electric Utilities', marketCap: '$2B', volume: 10000000, recommendation: 'NEUTRAL', reason: "Expected to take years to turn a profit" },
-]
 
 function StockTable({stocks}) {
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Symbol</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Sector</TableHead>
-                <TableHead>Market Cap</TableHead>
-                <TableHead>Volume</TableHead>
-                <TableHead>Reason</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {stocks.map((stock, index) => (
-                    <TableRow key={`${stock.symbol}-${index}`}>
-                        <TableCell className="font-medium">{stock.symbol}</TableCell>
-                        <TableCell>{stock.name}</TableCell>
-                        <TableCell>{stock.sector}</TableCell>
-                        <TableCell>{stock.marketCap}</TableCell>
-                        <TableCell>{stock.volume.toLocaleString()}</TableCell>
-                        <TableCell>{stock.reason}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <Card className="col-span-1 md:col-span-2">
+            {/* <CardHeader>
+                <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Quick Stock Query
+                </CardTitle>
+            </CardHeader> */}
+            <CardContent>
+                <div className="mt-6 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <Info className="w-5 h-5" />
+                            AI Insights
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm">{results.llm_response}</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </CardContent>
+        </Card>
     )
  
 }
 
-export default function StockResults() {
-    const [currentTab, setCurrentTab] = useState('BUY');
-    const filteredStocks = mockStocks.filter(stock => stock.recommendation === currentTab);
+export default function StockResults({queryLLMResponse, queryMatches}) {
+    // const [currentTab, setCurrentTab] = useState('BUY');
+    // const filteredStocks = mockStocks.filter(stock => stock.recommendation === currentTab);
 
-    return (<div id="stockResults" className="mt-8">
-        <Tabs defaultValue="BUY" onValueChange={(value) => setCurrentTab(value)}>
-            <TabsList>
-                <TabsTrigger value="BUY">Best to Buy</TabsTrigger>
-                <TabsTrigger value="SELL">Best to Sell</TabsTrigger>
-                <TabsTrigger value="NEUTRAL">Neutral Stocks</TabsTrigger>
-            </TabsList>
-            <TabsContent value="BUY">
-                <StockTable stocks={filteredStocks} />
-            </TabsContent>
-            <TabsContent value="SELL">
-                <StockTable stocks={filteredStocks} />
-            </TabsContent>
-            <TabsContent value="NEUTRAL">
-                <StockTable stocks={filteredStocks} />
-            </TabsContent>
-      </Tabs>
-    </div>);
+    return (
+        <Card className="col-span-1 md:col-span-2">
+            { (queryLLMResponse && queryMatches) &&(
+                <div className="mt-6 space-y-6">
+                    <CardContent>
+                        <div className="mt-6 space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                    <Info className="w-5 h-5" />
+                                    AI Insights
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm">{queryLLMResponse}</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </CardContent>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold">Top Matches</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Tabs defaultValue="table" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="table">Table View</TabsTrigger>
+                                    <TabsTrigger value="details">Detailed View</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="table">
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Name</TableHead>
+                                                    <TableHead>Ticker</TableHead>
+                                                    <TableHead>Industry</TableHead>
+                                                    <TableHead>Sector</TableHead>
+                                                    <TableHead>Location</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {queryMatches.map((match, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell className="font-medium">{match.Name}</TableCell>
+                                                        <TableCell>{match.Ticker}</TableCell>
+                                                        <TableCell>{match.Industry}</TableCell>
+                                                        <TableCell>{match.Sector}</TableCell>
+                                                        <TableCell>{`${match.City}, ${match.State}, ${match.Country}`}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="details">
+                                    <div className="space-y-4">
+                                        {queryMatches.map((match, index) => (
+                                            <Card key={index}>
+                                                <CardHeader>
+                                                    <CardTitle>{match.Name} ({match.Ticker})</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <p className="text-sm mb-2"><strong>Industry:</strong> {match.Industry}</p>
+                                                    <p className="text-sm mb-2"><strong>Sector:</strong> {match.Sector}</p>
+                                                    <p className="text-sm mb-2"><strong>Location:</strong> {match.City}, {match.State}, {match.Country}</p>
+                                                    <p className="text-sm"><strong>Summary:</strong> {match["Business Summary"]}</p>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+        </Card>
+    )
 }

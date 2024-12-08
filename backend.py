@@ -16,11 +16,15 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 import os
 from dotenv import load_dotenv
+from flask_cors import CORS
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 # Load environment variables
 load_dotenv('.env.local')
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Access API keys
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
