@@ -1,4 +1,5 @@
 "use client";
+import NewsSentiment from "@/components/custom/news-sentiment";
 import SearchForm from "@/components/custom/search-form";
 import StockInfo from "@/components/custom/stock-info";
 import StockResults from "@/components/custom/stock-results";
@@ -35,7 +36,8 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Top Urls Placement */}
-          <TopUrls />
+          <NewsSentiment />
+          {/* <TopUrls /> */}
           <StockInfo />
         </div>
       </main>
