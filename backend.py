@@ -5,31 +5,20 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import os
 import requests
 import json
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
 from openai import OpenAI
-from langchain_pinecone import PineconeVectorStore
-from openai import OpenAI
 import dotenv
-import json
-import yfinance as yf
 import concurrent.futures
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
-from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
-from pinecone import Pinecone
-import numpy as np
-import requests
 import os
-import requests
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv('.env.local')
 
 app = Flask(__name__)
 
@@ -68,6 +57,7 @@ client = OpenAI(
   base_url="https://api.groq.com/openai/v1",
   api_key=GROQ_API_KEY
 )
+# openai.api_key = os.getenv("GROQ_API_KEY")
 
 @app.route('/query-pinecone', methods=['POST'])
 def query_pinecone():
@@ -255,7 +245,8 @@ def news_sentiment():
     response = llm_response.choices[0].message.content
     
     return jsonify(response)
-    
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
