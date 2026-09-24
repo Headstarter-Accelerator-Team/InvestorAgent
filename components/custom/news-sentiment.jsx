@@ -144,13 +144,13 @@ export default function NewsSentiment() {
                     <TabsTrigger value="neutral">Neutral</TabsTrigger>
                 </TabsList>
                 <TabsContent value="buy">
-                    {renderStockList(data.best_to_buy, <TrendingUp className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />)}
+                    {renderStockList(data.best_to_buy ?? [], <TrendingUp className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />)}
                 </TabsContent>
                 <TabsContent value="sell">
-                    {renderStockList(data.best_to_sell, <TrendingDown className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />)}
+                    {renderStockList(data.best_to_sell ?? [], <TrendingDown className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />)}
                 </TabsContent>
                 <TabsContent value="neutral">
-                    {renderStockList(data.neutral_stocks, <Minus className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-1" />)}
+                    {renderStockList(data.neutral_stocks ?? [], <Minus className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-1" />)}
                 </TabsContent>
             </Tabs>
         )
@@ -185,7 +185,7 @@ export default function NewsSentiment() {
                         <div className="mt-6">
                         <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Top 5 Market Movers</h3>
                         <ul className="space-y-2">
-                            {data.top_articles.map((url, index) => (
+                            {(data.top_articles ?? []).map((url, index) => (
                                 <li key={index} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
                                     <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2">
                                     <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
