@@ -1,39 +1,25 @@
-import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
-import { NEWS_SNAPSHOT, NEWS_SYSTEM_PROMPT } from "@/lib/news-prompt";
-import { fetchNewsTable, groqChat } from "@/lib/server";
+import { getNews } from "@/lib/news";
 
-export const dynamic = "force-dynamic";
-
-// Each call uses ~5.5k Groq tokens (free tier: 8k/min) and Alpha Vantage's
-// free tier allows 25 calls/day, so cache the analysis for an hour.
-// Errors are thrown, so they are not cached.
-const getNewsSentiment = unstable_cache(
-  async () => {
-    const query = (await fetchNewsTable()) ?? NEWS_SNAPSHOT;
-    return groqChat(
-      [
-        { role: "system", content: NEWS_SYSTEM_PROMPT },
-        { role: "user", content: query },
-      ],
-      { response_format: { type: "json_object" } }
-    );
-  },
-  ["news-sentiment"],
-  { revalidate: 3600 }
-);
-
+// GET /api/news-sentiment?tickers=NVDA,KO
 export async function GET(req) {
-  try {
-    const result = await getNewsSentiment();
+  const tickers = [
+    ...new Set(
+      (req.nextUrl.searchParams.get("tickers") ?? "")
+        .split(",")
+        .map((t) => t.trim().toUpperCase())
+        .filter((t) => /^[A-Z.\-]{1,6}$/.test(t))
+    ),
+  ].slice(0, 5);
+  if (tickers.length === 0) {
+    return NextResponse.json({ error: "Pass ?tickers=AAPL,MSFT" }, { status: 400 });
+  }
 
-    console.log(result);
-    return NextResponse.json({ data: result });
+  try {
+    const data = await Promise.all(tickers.map((t) => getNews(t)));
+    return NextResponse.json({ data });
   } catch (error) {
-    console.error("Failed to fetch news sentiment.", error);
-    return NextResponse.json(
-      { error: "Failed to fetch news sentiment." },
-      { status: 500 }
-    );
+    console.error("Failed to fetch news.", error);
+    return NextResponse.json({ error: "Failed to fetch news." }, { status: 500 });
   }
 }

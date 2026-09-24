@@ -1,160 +1,50 @@
 "use client";
 
-import { Newspaper } from "lucide-react";
+import { Newspaper, RefreshCw, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { RefreshCw } from "lucide-react";
-// import { Alert, AlertCircle, AlertTitle, AlertDescription } from "../ui/alert";
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { TrendingUp } from "lucide-react";
-import { TrendingDown } from "lucide-react";
-import { Minus } from "lucide-react";
 
+const SENTIMENT_STYLES = {
+    Bullish: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    "Somewhat-Bullish": "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
+    Neutral: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200",
+    "Somewhat-Bearish": "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
+    Bearish: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
 
-
-
-export default function NewsSentiment() {
+export default function NewsSentiment({ tickers }) {
 
     const [data, setData] = useState(null);
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null);
+    const key = tickers.join(",");
 
-    // const fetchNewsSentiment = useCallback(async () => {
-    //     setIsLoading(true)
-    //     setError(null)
-    //     setData(null)
-        
-    //     try {
-    //         const response = await fetch('/api/news-sentiment', {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             }
-    //         });
-
-    //         if (!response.ok){
-    //             throw new Error(`Response status: ${response.status}`);
-    //         }
-
-    //         const result = await response.text(); // Get the response as a string
-
-    //         // Log the response for debugging
-    //         console.log("Response:", result);
-
-    //         // Refined regex patterns
-    //     const bestToBuyMatch = result.match(/Best to Buy:\n+([\s\S]*?)\n+Best to Sell:/);
-    //     const bestToSellMatch = result.match(/Best to Sell:\n+([\s\S]*?)\n+Neutral Stocks:/);
-    //     const neutralStocksMatch = result.match(/Neutral Stocks:\n+([\s\S]*?)\n+Top 10 URLs:/);
-    //     const topUrlsMatch = result.match(/Top 10 URLs:\n+([\s\S]*)/);
-
-    //     if (!bestToBuyMatch || !bestToSellMatch || !neutralStocksMatch || !topUrlsMatch) {
-    //         throw new Error("Failed to parse response");
-    //     }
-
-    //     const bestToBuy = bestToBuyMatch[1].trim().split("\n").map((item) => item.trim());
-    //     const bestToSell = bestToSellMatch[1].trim().split("\n").map((item) => item.trim());
-    //     const neutralStocks = neutralStocksMatch[1].trim().split("\n").map((item) => item.trim());
-    //     const topUrls = topUrlsMatch[1].trim().split("\n").map((url) => url.trim());
-
-    //     const transformedData = {
-    //         topNews: topUrls.map((url, index) => ({
-    //             url: url,
-    //             title: `Top News ${index + 1}`,
-    //         })),
-    //         bestToBuy,
-    //         bestToSell,
-    //         neutralStocks,
-    //     };
-    //         setData(transformedData);
-    //         setIsLoading(false);
-    //     } catch (error){
-    //         console.error('Error fetching news sentiment:', error);
-    //         setError(error instanceof Error ? error.message : 'An unexpected error occurred');
-    //     } finally {
-    //         setIsLoading(false)
-    //     }
-    // }, []);
-
-    const fetchNewsSentiment = useCallback(async () => {
+    const fetchNews = useCallback(async () => {
+        if (!key) return;
         setIsLoading(true);
         setError(null);
-
         try {
-            const response = await fetch("/api/news-sentiment", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
+            const response = await fetch(`/api/news-sentiment?tickers=${encodeURIComponent(key)}`);
             const result = await response.json();
-            console.log("Response:", result);
-            const parsedData = JSON.parse(result.data);
-            const structuredData = {
-                "best_to_buy": parsedData.best_to_buy,
-                "best_to_sell": parsedData.best_to_sell,
-                "neutral_stocks": parsedData.neutral_stocks,
-                "top_articles": parsedData.top_articles
+            if (!response.ok) {
+                throw new Error(result.error ?? `Response status: ${response.status}`);
             }
-            console.log("Structured Data: ", structuredData);
-
-            setData(structuredData);
+            setData(result.data);
         } catch (error) {
-            console.error("Error fetching news sentiment:", error);
+            console.error("Error fetching news:", error);
             setError(error.message || "An unexpected error occurred");
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [key]);
 
     useEffect(() => {
-        fetchNewsSentiment();
-    }, [fetchNewsSentiment]);
-
-    const renderStockList = (stocks, icon) => (
-        <ul className="space-y-2 mt-4">
-            {stocks.map((stock, index) => (
-                <li key={index} className="flex items-start gap-2 bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
-                {icon}
-                <div>
-                    <span className="font-semibold">{stock.stock} ({stock.ticker})</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{stock.reason}</p>
-                </div>
-                </li>
-            ))}
-        </ul>
-    )
-
-    const renderSentimentAnalysis = () => {
-        if (!data) return null
-        console.log(data);
-        return (
-            <Tabs defaultValue="buy" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="buy">Best to Buy</TabsTrigger>
-                    <TabsTrigger value="sell">Best to Sell</TabsTrigger>
-                    <TabsTrigger value="neutral">Neutral</TabsTrigger>
-                </TabsList>
-                <TabsContent value="buy">
-                    {renderStockList(data.best_to_buy ?? [], <TrendingUp className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />)}
-                </TabsContent>
-                <TabsContent value="sell">
-                    {renderStockList(data.best_to_sell ?? [], <TrendingDown className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />)}
-                </TabsContent>
-                <TabsContent value="neutral">
-                    {renderStockList(data.neutral_stocks ?? [], <Minus className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-1" />)}
-                </TabsContent>
-            </Tabs>
-        )
-    }
+        setData(null);
+        fetchNews();
+    }, [fetchNews]);
 
     return (
         <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -162,12 +52,14 @@ export default function NewsSentiment() {
                 <CardTitle className="text-xl font-semibold flex items-center justify-between">
                 <span className="flex items-center gap-2">
                     <Newspaper className="w-5 h-5" />
-                    Market Pulse: News Sentiment
+                    Latest News
                 </span>
-                <Button variant="outline" size="sm" onClick={fetchNewsSentiment} disabled={isLoading}>
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                    {isLoading ? 'Refreshing...' : 'Refresh'}
-                </Button>
+                {key && (
+                    <Button variant="outline" size="sm" onClick={fetchNews} disabled={isLoading}>
+                        <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                        {isLoading ? 'Refreshing...' : 'Refresh'}
+                    </Button>
+                )}
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -178,34 +70,46 @@ export default function NewsSentiment() {
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
-                {isLoading && <p className="text-center text-gray-600 dark:text-gray-400">Analyzing market sentiment...</p>}
-                {data && (
-                    <div className="space-y-6">
-                        {renderSentimentAnalysis()}
-                        <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Top 5 Market Movers</h3>
-                        <ul className="space-y-2">
-                            {(data.top_articles ?? []).map((url, index) => (
-                                <li key={index} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
-                                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2">
-                                    <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                        {index + 1}
-                                    </Badge>
-                                    {/* <span className="text-sm">{new URL(url).hostname}</span> */}
-                                    <span className="text-sm">{url.substring(0, 70)}...</span>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                        </div>
-                    </div>
+                {!key && (
+                    <p className="text-center text-gray-500 dark:text-gray-400">
+                        Ask a question to see the latest news for the stocks it recommends.
+                    </p>
                 )}
-                {!isLoading && !error && !data && (
-                    <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>No Data</AlertTitle>
-                        <AlertDescription>No sentiment analysis data is currently available.</AlertDescription>
-                    </Alert>
+                {isLoading && <p className="text-center text-gray-600 dark:text-gray-400">Loading news...</p>}
+                {data && !isLoading && (
+                    <Tabs defaultValue={data[0]?.ticker} className="w-full">
+                        <TabsList className="flex w-full">
+                            {data.map((d) => (
+                                <TabsTrigger key={d.ticker} value={d.ticker} className="flex-1">{d.ticker}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                        {data.map((d) => (
+                            <TabsContent key={d.ticker} value={d.ticker}>
+                                {d.articles.length === 0 && (
+                                    <p className="text-sm text-gray-500 mt-4">No recent news found.</p>
+                                )}
+                                <ul className="space-y-2 mt-4">
+                                    {d.articles.map((a) => (
+                                        <li key={a.url} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
+                                            <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
+                                                {a.title}
+                                            </a>
+                                            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                <span>{a.publisher}</span>
+                                                <span>{new Date(a.publishedAt).toLocaleDateString()}</span>
+                                                {a.sentiment && (
+                                                    <span className={`rounded px-1.5 py-0.5 ${SENTIMENT_STYLES[a.sentiment.label] ?? ""}`}>
+                                                        {a.sentiment.label}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="text-xs text-gray-400 mt-2">Source: {d.source}</p>
+                            </TabsContent>
+                        ))}
+                    </Tabs>
                 )}
             </CardContent>
         </Card>

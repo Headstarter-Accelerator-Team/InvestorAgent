@@ -9,6 +9,7 @@ import { Briefcase } from "lucide-react";
 import { Building2 } from "lucide-react";
 import { MapPin } from "lucide-react";
 import { useState } from "react";
+import { FactorBars, MetricGrid, ScoreDetails } from "./metrics";
 
 
 
@@ -16,10 +17,12 @@ export default function StockInfo() {
     const [symbol, setSymbol] = useState('');
     const [stockInfo, setStockInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
 
     const fetchStockInfo = async () => {
         setIsLoading(true)
+        setError(null)
         try {
             // Simulating API call with setTimeout
             // setTimeout(() => {
@@ -35,16 +38,17 @@ export default function StockInfo() {
                 body: JSON.stringify({symbol: symbol})
             });  
             
-            if (!response.ok){
-                throw new Error(`Response status: ${response.status}`);
-            }
-
             const result = await response.json();
+            if (!response.ok){
+                throw new Error(result.error ?? `Response status: ${response.status}`);
+            }
 
             setStockInfo(result);
             setIsLoading(false);
         } catch (error) {
             console.error('Error fetching stock info:', error)
+            setStockInfo(null)
+            setError(error.message)
             setIsLoading(false)
         }
     }
@@ -63,7 +67,8 @@ export default function StockInfo() {
                         type="text"
                         value={symbol}
                         onChange={(e) => setSymbol(e.target.value)}
-                        placeholder="Enter stock symbol"
+                        onKeyDown={(e) => e.key === 'Enter' && fetchStockInfo()}
+                        placeholder="Ticker or company name"
                         className="flex-grow"
                     />
                     <Button onClick={fetchStockInfo} disabled={isLoading}>
@@ -92,6 +97,18 @@ export default function StockInfo() {
                                 <span className="font-semibold">Location:</span> {stockInfo.City}, {stockInfo.State}, {stockInfo.Country}
                             </div>
                         </div>
+                        {stockInfo.score && (
+                            <div className="space-y-4">
+                                <MetricGrid stock={stockInfo} />
+                                <div>
+                                    <p className="text-sm font-semibold mb-2">
+                                        Balanced score: {stockInfo.score.composite ?? "n/a"} / 100
+                                    </p>
+                                    <FactorBars score={stockInfo.score} />
+                                </div>
+                                <ScoreDetails score={stockInfo.score} style="balanced" />
+                            </div>
+                        )}
                         <div>
                             <h3 className="text-lg font-semibold mb-2">Business Summary</h3>
                             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -100,7 +117,10 @@ export default function StockInfo() {
                         </div>
                     </div>
                 )}
-                {!stockInfo && !isLoading && (
+                {error && !isLoading && (
+                    <p className="text-center text-red-600 dark:text-red-400">{error}</p>
+                )}
+                {!stockInfo && !isLoading && !error && (
                     <div className="text-center text-gray-500 dark:text-gray-400">
                         <p>
                             No stock information available. Please enter a valid stock symbol and click `Fetch`.
