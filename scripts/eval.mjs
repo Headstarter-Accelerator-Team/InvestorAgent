@@ -8,7 +8,9 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const universe = new Set(
   JSON.parse(fs.readFileSync(new URL("../data/universe.json", import.meta.url))).map((u) => u.t)
 );
-const PAUSE_MS = 25_000;
+const PAUSE_MS = Number(process.env.EVAL_PAUSE_MS ?? 25_000);
+// Finance acronyms that are also tickers (PEG ratio vs. PEG the company).
+const FINANCE_TERMS = new Set(["PEG", "EPS", "ROE", "FCF", "EV", "YOY", "ETF", "IPO", "CEO", "AI", "PE"]);
 
 const CASES = [
   { q: "What are the best stocks to buy right now for a 25 year old with high risk tolerance?" },
@@ -43,6 +45,7 @@ function evaluate(c, res, ms) {
   for (const p of res.picks) {
     if (p.quoteType !== "EQUITY") fails.push(`${p.ticker} is ${p.quoteType}`);
     if (c.check && !c.check(p)) fails.push(`${p.ticker} fails case check`);
+    if (p.stanceSource !== "score" && p.thesis.length === 0) fails.push(`${p.ticker} has no grounded thesis`);
     for (const line of [...p.thesis, ...p.risks]) {
       if (!/\d/.test(line)) fails.push(`${p.ticker} bullet without a number: "${line.slice(0, 60)}"`);
     }
@@ -50,7 +53,7 @@ function evaluate(c, res, ms) {
   // Tickers mentioned in the summary must be ones we analysed.
   const mentioned = [...(res.summary ?? "").matchAll(/\b[A-Z]{2,5}\b/g)]
     .map((m) => m[0])
-    .filter((t) => universe.has(t) && !tickers.includes(t));
+    .filter((t) => universe.has(t) && !tickers.includes(t) && !FINANCE_TERMS.has(t));
   if (mentioned.length) fails.push(`summary mentions unanalysed ${mentioned.join(",")}`);
   if (ms > 45_000) fails.push(`slow: ${Math.round(ms / 1000)}s`);
   return fails;

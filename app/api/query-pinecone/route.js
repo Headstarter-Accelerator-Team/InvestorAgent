@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { advise } from "@/lib/advisor";
+import { jsonError, readJSON, ServiceError } from "@/lib/errors";
 
 export const maxDuration = 60;
 
 // Legacy endpoint kept for older clients; the UI uses /api/advise.
 export async function POST(req) {
-  const { query } = await req.json();
+  const body = await readJSON(req);
+  const query = typeof body?.query === "string" ? body.query.trim() : "";
+  if (!query) return jsonError("Request body must be JSON with a \"query\" string.", 400);
+
   try {
-    const result = await advise({ question: String(query ?? "").slice(0, 500) });
+    const result = await advise({ question: query.slice(0, 500) });
     return NextResponse.json({
       query,
       pinecone_results: result.picks.map((p) => ({
@@ -21,9 +25,7 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Failed to fetch: ", error);
-    return NextResponse.json(
-      { error: "Failed to fetch matches for query." },
-      { status: 500 }
-    );
+    if (error instanceof ServiceError) return jsonError(error.message, error.status);
+    return jsonError("Failed to fetch matches for query.", 500);
   }
 }

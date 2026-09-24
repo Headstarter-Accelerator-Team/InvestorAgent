@@ -10,6 +10,7 @@ import { Building2 } from "lucide-react";
 import { MapPin } from "lucide-react";
 import { useState } from "react";
 import { FactorBars, MetricGrid, ScoreDetails } from "./metrics";
+import { requestJSON } from "@/lib/api-client";
 
 
 
@@ -21,6 +22,7 @@ export default function StockInfo() {
 
 
     const fetchStockInfo = async () => {
+        if (!symbol.trim() || isLoading) return;
         setIsLoading(true)
         setError(null)
         try {
@@ -30,18 +32,11 @@ export default function StockInfo() {
             //     setIsLoading(false)
             // }, 1000)
             console.log("Symbol: ", symbol);
-            const response = await fetch('/api/retrieve-stock-info', {
+            const result = await requestJSON('/api/retrieve-stock-info', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({symbol: symbol})
-            });  
-            
-            const result = await response.json();
-            if (!response.ok){
-                throw new Error(result.error ?? `Response status: ${response.status}`);
-            }
+                body: {symbol: symbol},
+                timeoutMs: 25_000,
+            });
 
             setStockInfo(result);
             setIsLoading(false);

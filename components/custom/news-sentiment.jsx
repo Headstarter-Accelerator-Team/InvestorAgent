@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { requestJSON } from "@/lib/api-client";
 
 const SENTIMENT_STYLES = {
     Bullish: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -27,11 +28,7 @@ export default function NewsSentiment({ tickers }) {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/news-sentiment?tickers=${encodeURIComponent(key)}`);
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.error ?? `Response status: ${response.status}`);
-            }
+            const result = await requestJSON(`/api/news-sentiment?tickers=${encodeURIComponent(key)}`, { timeoutMs: 20_000 });
             setData(result.data);
         } catch (error) {
             console.error("Error fetching news:", error);
@@ -85,7 +82,10 @@ export default function NewsSentiment({ tickers }) {
                         </TabsList>
                         {data.map((d) => (
                             <TabsContent key={d.ticker} value={d.ticker}>
-                                {d.articles.length === 0 && (
+                                {d.error && (
+                                    <p className="text-sm text-red-600 dark:text-red-400 mt-4">{d.error}</p>
+                                )}
+                                {!d.error && d.articles.length === 0 && (
                                     <p className="text-sm text-gray-500 mt-4">No recent news found.</p>
                                 )}
                                 <ul className="space-y-2 mt-4">
@@ -106,7 +106,7 @@ export default function NewsSentiment({ tickers }) {
                                         </li>
                                     ))}
                                 </ul>
-                                <p className="text-xs text-gray-400 mt-2">Source: {d.source}</p>
+                                {d.source && <p className="text-xs text-gray-400 mt-2">Source: {d.source}</p>}
                             </TabsContent>
                         ))}
                     </Tabs>

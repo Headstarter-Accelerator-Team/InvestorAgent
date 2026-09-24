@@ -1,22 +1,27 @@
 import { NextResponse } from "next/server";
+import { jsonError, readJSON } from "@/lib/errors";
 import { getFactSheet, resolveTicker } from "@/lib/market";
 import { scoreStock } from "@/lib/score";
 
 export async function POST(req) {
-  const data = await req.json();
-  const symbol = String(data.symbol ?? "").trim();
+  const data = await readJSON(req);
+  if (!data) return jsonError("Request body must be JSON.", 400);
+  const symbol = String(data.symbol ?? "").trim().slice(0, 100);
   console.log("User searched: ", symbol);
-  if (!symbol) {
-    return NextResponse.json({ error: "Enter a ticker." }, { status: 400 });
-  }
+  if (!symbol) return jsonError("Enter a ticker or company name.", 400);
 
+  let ticker;
   try {
-    const ticker = /^[A-Za-z.\-]{1,6}$/.test(symbol)
+    ticker = /^[A-Za-z.\-]{1,6}$/.test(symbol)
       ? symbol.toUpperCase()
       : await resolveTicker(symbol);
-    if (!ticker) {
-      return NextResponse.json({ error: `No stock found for "${symbol}".` }, { status: 404 });
-    }
+  } catch (error) {
+    console.error("Ticker search failed:", error);
+    return jsonError("Stock search is temporarily unavailable. Please try again in a minute.", 503);
+  }
+  if (!ticker) return jsonError(`No stock found for "${symbol}".`, 404);
+
+  try {
     const fact = await getFactSheet(ticker);
     return NextResponse.json({
       ...fact,
@@ -33,10 +38,9 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Error fetching stock info:", error);
-    const notFound = /not found/i.test(error.message);
-    return NextResponse.json(
-      { error: notFound ? `No stock found for "${symbol}".` : "Failed to fetch stock info." },
-      { status: notFound ? 404 : 500 }
-    );
+    if (/not found/i.test(error.message)) {
+      return jsonError(`No stock found for "${symbol}".`, 404);
+    }
+    return jsonError("Market data is temporarily unavailable. Please try again in a minute.", 503);
   }
 }

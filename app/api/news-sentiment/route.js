@@ -15,11 +15,12 @@ export async function GET(req) {
     return NextResponse.json({ error: "Pass ?tickers=AAPL,MSFT" }, { status: 400 });
   }
 
-  try {
-    const data = await Promise.all(tickers.map((t) => getNews(t)));
-    return NextResponse.json({ data });
-  } catch (error) {
-    console.error("Failed to fetch news.", error);
-    return NextResponse.json({ error: "Failed to fetch news." }, { status: 500 });
-  }
+  // One ticker's news failing shouldn't blank the others.
+  const settled = await Promise.allSettled(tickers.map((t) => getNews(t)));
+  const data = settled.map((r, i) => {
+    if (r.status === "fulfilled") return r.value;
+    console.error(`News failed for ${tickers[i]}:`, r.reason);
+    return { ticker: tickers[i], source: null, articles: [], error: "News is temporarily unavailable." };
+  });
+  return NextResponse.json({ data });
 }

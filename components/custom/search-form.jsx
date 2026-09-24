@@ -16,40 +16,20 @@ const EXAMPLES = [
     "Compare Apple and Microsoft",
 ];
 
-export default function SearchForm({ onResult, isLoading, setIsLoading }) {
+export default function SearchForm({ onAsk, isLoading }) {
     const [query, setQuery] = useState('');
     const [style, setStyle] = useState('auto');
     const [sector, setSector] = useState('any');
     const [size, setSize] = useState('any');
 
-    const ask = async (question) => {
+    const ask = (question) => {
         if (!question.trim() || isLoading) return;
-        console.log("User asked: ", question);
-        setIsLoading(true);
-        try {
-            const response = await fetch(`/api/advise`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    question,
-                    style: style === 'auto' ? undefined : style,
-                    sector: sector === 'any' ? undefined : sector,
-                    size: size === 'any' ? undefined : size,
-                })
-            });
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.error ?? `Response status: ${response.status}`);
-            }
-            onResult(result, null);
-        } catch (error) {
-            console.error("Failed to fetch advice:", error);
-            onResult(null, error.message);
-        } finally {
-            setIsLoading(false);
-        }
+        onAsk({
+            question,
+            style: style === 'auto' ? undefined : style,
+            sector: sector === 'any' ? undefined : sector,
+            size: size === 'any' ? undefined : size,
+        });
     };
 
     const handleSubmit = (e) => {

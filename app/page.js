@@ -3,16 +3,30 @@ import NewsSentiment from "@/components/custom/news-sentiment";
 import SearchForm from "@/components/custom/search-form";
 import StockInfo from "@/components/custom/stock-info";
 import StockResults from "@/components/custom/stock-results";
+import { requestJSON } from "@/lib/api-client";
 import { useState } from "react";
 
 export default function Home() {
   const [advice, setAdvice] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastRequest, setLastRequest] = useState(null);
 
-  const handleResult = (result, errorMessage) => {
-    setAdvice(result);
-    setError(errorMessage);
+  const ask = async (request) => {
+    console.log("User asked: ", request.question);
+    setLastRequest(request);
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Server allows 60s; leave headroom for the network.
+      setAdvice(await requestJSON("/api/advise", { method: "POST", body: request, timeoutMs: 70_000 }));
+    } catch (err) {
+      console.error("Failed to fetch advice:", err);
+      setAdvice(null);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -27,13 +41,14 @@ export default function Home() {
       <main className="flex-1 p-8 overflow-auto">
         <div className="container mx-auto py-8 px-4">
           {/* Form Placement */}
-          <SearchForm
-            onResult={handleResult}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
+          <SearchForm onAsk={ask} isLoading={isLoading} />
           {/* Stock Results Placement */}
-          <StockResults advice={advice} error={error} isLoading={isLoading} />
+          <StockResults
+            advice={advice}
+            error={error}
+            isLoading={isLoading}
+            onRetry={lastRequest ? () => ask(lastRequest) : undefined}
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <NewsSentiment tickers={(advice?.picks ?? []).map((p) => p.ticker)} />
