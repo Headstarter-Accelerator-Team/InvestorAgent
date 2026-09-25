@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Python virtual environment
 .venv
+
+# backtest data cache
+.backtest-cache/
