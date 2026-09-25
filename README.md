@@ -4,6 +4,15 @@ An agent which search stocks for you based on a question and gives relevant arti
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Scoring models
+
+The app has a toggle between two scoring models (remembered per browser):
+
+- **Backtested (default):** profitability (ROE, 60%) + free-cash-flow yield (40%), as percentiles against companies worth $10B+ (`data/backtest-model.json`, built by `scripts/build-model.mjs`). In a point-in-time backtest (2016-2026, SEC filings as filed, quarterly rebalance) its top 20 beat an equal-weight basket of $10B+ companies in 9 of 11 years, including every held-out year 2023-2026, by roughly 1-12% a year. The edge is modest and concentrated at the top of the ranking. Style filters (safe, value, growth) narrow its list but are not part of the backtest.
+- **Classic:** the original style-weighted multi-factor score (`lib/score.js`). It showed no predictive edge in the same backtest and is kept as a descriptive view.
+
+Backtest tooling lives in `scripts/backtest*.mjs` and `scripts/experiments/`.
+
 ## Environment variables
 
 Set these in `.env.local` for local development and in the Vercel project for deployments.

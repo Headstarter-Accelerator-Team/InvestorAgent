@@ -78,16 +78,27 @@ const INPUT_LABELS = {
     analystRating: ["Analyst rating (1-5)", (v) => fmt.x(v, 2)],
     analystUpside: ["Target upside", fmt.pct],
     analystCount: ["Analysts", (v) => (v === null ? "n/a" : String(v))],
+    fcfYield: ["Free-cash-flow yield", (v) => fmt.pctPlain(v, 1)],
 };
 
 export function ScoreDetails({ score, style }) {
+    const backtested = score.model === "backtested";
     return (
         <details className="text-xs text-gray-600 dark:text-gray-300">
             <summary className="cursor-pointer font-medium">How this was scored</summary>
-            <p className="mt-2">
-                Each factor is 0-100 from the inputs below. The composite weights them for the{" "}
-                <span className="font-semibold">{style}</span> style.
-            </p>
+            {backtested ? (
+                <p className="mt-2">
+                    Backtested model: each factor is a 0-100 percentile against $10B+ companies (2016-2026 history),
+                    weighted ROE 60% and cash-flow yield 40%. In the backtest, only the top of this ranking (roughly
+                    85+) had an edge; the middle is not predictive.
+                    {score.inTestedRange === false && " This company is below $10B, outside the tested range."}
+                </p>
+            ) : (
+                <p className="mt-2">
+                    Classic model: each factor is 0-100 from the inputs below. The composite weights them for the{" "}
+                    <span className="font-semibold">{style}</span> style. It showed no predictive edge in the backtest.
+                </p>
+            )}
             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.values(score.factors).map((f) => (
                     <div key={f.label}>

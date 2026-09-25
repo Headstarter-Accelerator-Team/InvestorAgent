@@ -14,7 +14,7 @@ import { requestJSON } from "@/lib/api-client";
 
 
 
-export default function StockInfo() {
+export default function StockInfo({ model = "backtested" }) {
     const [symbol, setSymbol] = useState('');
     const [stockInfo, setStockInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ export default function StockInfo() {
             console.log("Symbol: ", symbol);
             const result = await requestJSON('/api/retrieve-stock-info', {
                 method: 'POST',
-                body: {symbol: symbol},
+                body: {symbol: symbol, model: model},
                 timeoutMs: 25_000,
             });
 
@@ -97,7 +97,7 @@ export default function StockInfo() {
                                 <MetricGrid stock={stockInfo} />
                                 <div>
                                     <p className="text-sm font-semibold mb-2">
-                                        Balanced score: {stockInfo.score.composite ?? "n/a"} / 100
+                                        {stockInfo.score.model === "classic" ? "Classic (balanced) score" : "Backtested score"}: {stockInfo.score.composite ?? "n/a"} / 100
                                     </p>
                                     <FactorBars score={stockInfo.score} />
                                 </div>

@@ -7,7 +7,7 @@ export const maxDuration = 60;
 export async function POST(req) {
   const body = await readJSON(req);
   if (!body) return jsonError("Request body must be JSON.", 400);
-  const { question, style, sector, size, history } = body;
+  const { question, style, sector, size, model, history } = body;
   if (typeof question !== "string" || !question.trim()) {
     return jsonError("Ask a question.", 400);
   }
@@ -19,6 +19,7 @@ export async function POST(req) {
       style,
       sector,
       size,
+      model,
       history,
     });
     return NextResponse.json(result);

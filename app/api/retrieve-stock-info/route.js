@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError, readJSON } from "@/lib/errors";
 import { getFactSheet, resolveTicker } from "@/lib/market";
-import { scoreStock } from "@/lib/score";
+import { scoreWithModel } from "@/lib/scoring-models";
 
 export async function POST(req) {
   const data = await readJSON(req);
@@ -25,7 +25,7 @@ export async function POST(req) {
     const fact = await getFactSheet(ticker);
     return NextResponse.json({
       ...fact,
-      score: scoreStock(fact, "balanced"),
+      score: scoreWithModel(fact, "balanced", data.model),
       // Fields the original UI reads.
       Ticker: fact.ticker,
       Name: fact.name,

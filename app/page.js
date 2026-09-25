@@ -1,5 +1,6 @@
 "use client";
 import FollowUpForm from "@/components/custom/follow-up-form";
+import ModelToggle from "@/components/custom/model-toggle";
 import NewsSentiment from "@/components/custom/news-sentiment";
 import SearchForm from "@/components/custom/search-form";
 import StockInfo from "@/components/custom/stock-info";
@@ -10,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 // The conversation lives for the browser session (survives a refresh,
 // cleared when the tab closes or on "New conversation").
 const STORAGE_KEY = "investor-agent-thread-v1";
+const MODEL_KEY = "investor-agent-model";
 const MAX_STORED_TURNS = 10;
 const HISTORY_TURNS = 3;
 
@@ -47,13 +49,29 @@ const toHistory = (turns) =>
 export default function Home() {
   const [turns, setTurns] = useState([]);
   const [restored, setRestored] = useState(false);
+  const [model, setModel] = useState("backtested");
   const lastTurnRef = useRef(null);
   const isLoading = turns.some((t) => t.isLoading);
 
   useEffect(() => {
     setTurns(loadThread());
+    try {
+      const saved = localStorage.getItem(MODEL_KEY);
+      if (saved === "classic" || saved === "backtested") setModel(saved);
+    } catch {
+      // Storage blocked: keep the default.
+    }
     setRestored(true);
   }, []);
+
+  const changeModel = (value) => {
+    setModel(value);
+    try {
+      localStorage.setItem(MODEL_KEY, value);
+    } catch {
+      // Storage blocked: the choice still applies for this visit.
+    }
+  };
 
   useEffect(() => {
     if (restored) saveThread(turns);
@@ -87,13 +105,13 @@ export default function Home() {
   };
 
   // Top search box starts a new conversation.
-  const askNew = (request) => startTurn(request, []);
+  const askNew = (request) => startTurn({ ...request, model }, []);
 
   // Follow-ups keep the thread and inherit the style/sector/size overrides.
   const askFollowUp = (question) => {
     const last = turns.at(-1);
     const { style, sector, size } = last?.request ?? {};
-    startTurn({ question, style, sector, size }, turns);
+    startTurn({ question, style, sector, size, model }, turns);
   };
 
   const retry = (turn) => {
@@ -116,6 +134,9 @@ export default function Home() {
       <main className="flex-1 p-8 overflow-auto">
         <div className="container mx-auto py-8 px-4">
           {/* Form Placement */}
+          <div className="mb-4">
+            <ModelToggle model={model} onChange={changeModel} disabled={isLoading} />
+          </div>
           <SearchForm onAsk={askNew} isLoading={isLoading} />
           {/* Conversation */}
           {turns.map((turn, i) => (
@@ -148,7 +169,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <NewsSentiment tickers={(latestAdvice?.picks ?? []).map((p) => p.ticker)} />
-          <StockInfo />
+          <StockInfo model={model} />
         </div>
       </main>
       <footer className="border-t py-4 px-4 text-center text-xs text-gray-500 dark:text-gray-400">

@@ -39,7 +39,9 @@ function PickCard({ pick, style }) {
                         )}
                         <div className="text-center">
                             <div className="text-2xl font-bold">{pick.score?.composite ?? "n/a"}</div>
-                            <div className="text-xs text-gray-500">score</div>
+                            <div className="text-xs text-gray-500">
+                                {pick.score?.model === "classic" ? "classic score" : "backtested score"}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -104,6 +106,11 @@ function PickCard({ pick, style }) {
                 {pick.nextEarnings && (
                     <p className="text-xs text-gray-500">Next earnings: {pick.nextEarnings.slice(0, 10)}</p>
                 )}
+                {pick.score?.inTestedRange === false && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Below $10B market cap: outside the range the backtested model was tested on.
+                    </p>
+                )}
                 {pick.dataSource && pick.dataSource !== "Yahoo Finance" && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">Data: {pick.dataSource}</p>
                 )}
@@ -159,6 +166,7 @@ export default function StockResults({ advice, error, isLoading, onRetry }) {
                         <p className="text-sm text-gray-700 dark:text-gray-300">{advice.portfolioNote}</p>
                     )}
                     <p className="text-xs text-gray-500">
+                        {advice.scoringModel ? `Scoring: ${advice.scoringModel === "classic" ? "Classic" : "Backtested"} model · ` : ""}
                         {advice.intent?.style ? `Style: ${advice.intent.style}` : ""}
                         {advice.intent?.sector ? ` · Sector: ${advice.intent.sector}` : ""}
                         {advice.intent?.theme ? ` · Theme: ${advice.intent.theme}` : ""}
