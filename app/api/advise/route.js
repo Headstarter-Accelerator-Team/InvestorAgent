@@ -7,11 +7,11 @@ export const maxDuration = 60;
 export async function POST(req) {
   const body = await readJSON(req);
   if (!body) return jsonError("Request body must be JSON.", 400);
-  const { question, style, sector, size } = body;
+  const { question, style, sector, size, history } = body;
   if (typeof question !== "string" || !question.trim()) {
     return jsonError("Ask a question.", 400);
   }
-  console.log("Advise:", question, style, sector, size);
+  console.log("Advise:", question, style, sector, size, Array.isArray(history) ? `(+${history.length} turns)` : "");
 
   try {
     const result = await advise({
@@ -19,6 +19,7 @@ export async function POST(req) {
       style,
       sector,
       size,
+      history,
     });
     return NextResponse.json(result);
   } catch (error) {
