@@ -70,8 +70,42 @@ function PickCard({ pick, style }) {
                         <span className="font-semibold">What would change this view: </span>{pick.watch}
                     </p>
                 )}
+                {pick.developments?.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold text-sm mb-1">Recent developments</h4>
+                        <ol className="list-decimal pl-5 text-sm space-y-1">
+                            {pick.developments.map((d) => (
+                                <li key={d.url}>
+                                    <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                                        {d.title}
+                                    </a>
+                                    <span className="text-xs text-gray-500">
+                                        {" "}· {d.source}{d.publishedAt ? ` · ${new Date(d.publishedAt).toLocaleDateString()}` : ""}
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
+                {pick.filings?.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold text-sm mb-1">Latest SEC filings</h4>
+                        <ul className="flex flex-wrap gap-2 text-xs">
+                            {pick.filings.map((f) => (
+                                <li key={f.url}>
+                                    <a href={f.url} target="_blank" rel="noopener noreferrer" className="inline-block rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                        <span className="font-semibold">{f.form}</span> {f.date}{f.about ? ` · ${f.about}` : ""}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 {pick.nextEarnings && (
                     <p className="text-xs text-gray-500">Next earnings: {pick.nextEarnings.slice(0, 10)}</p>
+                )}
+                {pick.dataSource && pick.dataSource !== "Yahoo Finance" && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">Data: {pick.dataSource}</p>
                 )}
                 {pick.score && <ScoreDetails score={pick.score} style={style} />}
             </CardContent>
@@ -116,6 +150,11 @@ export default function StockResults({ advice, error, isLoading, onRetry }) {
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {advice.summary && <p className="text-sm">{advice.summary}</p>}
+                    {advice.macro && (
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                            <span className="font-semibold">Market backdrop: </span>{advice.macro}
+                        </p>
+                    )}
                     {advice.portfolioNote && (
                         <p className="text-sm text-gray-700 dark:text-gray-300">{advice.portfolioNote}</p>
                     )}

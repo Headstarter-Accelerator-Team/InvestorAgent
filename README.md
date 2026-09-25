@@ -4,6 +4,26 @@ An agent which search stocks for you based on a question and gives relevant arti
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Environment variables
+
+Set these in `.env.local` for local development and in the Vercel project for deployments.
+
+| Variable | Required | Used for |
+|---|---|---|
+| `GROQ_API_KEY` | Yes | AI intent parsing and analysis (Groq) |
+| `PINECONE_API_KEY` | Yes | Thematic company search (Pinecone `stocks` index) |
+| `HF_TOKEN` | Yes | Embeddings for thematic search (Hugging Face) |
+| `ALPHA_VAN_API` | No | Per-ticker news with sentiment (Alpha Vantage); falls back to Yahoo headlines |
+| `TAVILY_API_KEY` | No | Recent company developments from web search, cited in the analysis |
+| `FRED_API_KEY` | No | Macro backdrop: rates, inflation, unemployment (FRED) |
+| `SEC_USER_AGENT` | No | Latest SEC filings per stock (EDGAR needs a contact User-Agent, e.g. `Investor Agent you@example.com`) |
+| `TWELVE_DATA_API_KEY` | No | Backup price data when Yahoo Finance is unavailable |
+| `GROQ_MODEL`, `GROQ_FAST_MODEL` | No | Override the Groq models (defaults `openai/gpt-oss-120b`, `openai/gpt-oss-20b`) |
+
+Optional features switch on automatically when their variable is set.
+
+`node scripts/eval.mjs http://localhost:3000` runs the 15-question grounding check.
+
 ## Getting Started
 
 First, run the development server:
