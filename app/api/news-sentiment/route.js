@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getNews } from "@/lib/news";
 
+// Up to 5 tickers; uncached Alpha Vantage calls are spaced ~1s apart.
+export const maxDuration = 30;
+
 // GET /api/news-sentiment?tickers=NVDA,KO
 export async function GET(req) {
   const tickers = [
