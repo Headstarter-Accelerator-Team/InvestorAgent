@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, MessageSquarePlus, RotateCcw } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 const SUGGESTIONS = [
+    "Why did these come out on top?",
+    "What are the biggest risks here?",
+    "Explain the scores in simple terms",
     "Which of these is the safest?",
-    "Tell me more about the top pick",
     "Show me cheaper alternatives",
 ];
 
-export default function FollowUpForm({ onAsk, onReset, isLoading }) {
+// `draft` pre-fills the box (e.g. from "Ask AI about NVDA"); it's applied
+// once and the box is focused so the user can finish the question.
+export default function FollowUpForm({ onAsk, onReset, isLoading, draft, onDraftUsed }) {
     const [query, setQuery] = useState('');
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (!draft) return;
+        setQuery(draft);
+        inputRef.current?.focus();
+        inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        onDraftUsed?.();
+    }, [draft, onDraftUsed]);
 
     const ask = (question) => {
         if (!question.trim() || isLoading) return;
@@ -22,13 +35,17 @@ export default function FollowUpForm({ onAsk, onReset, isLoading }) {
 
     return (
         <div className="mt-6 space-y-3 border-t pt-6">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+                Keep the conversation going: ask why, dig into a stock, or ask for different picks.
+            </p>
             <form
                 onSubmit={(e) => { e.preventDefault(); ask(query); }}
                 className="flex gap-2"
             >
                 <Input
+                    ref={inputRef}
                     type="text"
-                    placeholder="Ask a follow-up about these results..."
+                    placeholder="Ask the AI a follow-up about these stocks..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     aria-label="Follow-up question"

@@ -44,7 +44,7 @@ export default function NewsSentiment({ tickers }) {
     }, [fetchNews]);
 
     return (
-        <Card className="bg-white dark:bg-gray-800 shadow-lg">
+        <Card className="shadow-lg">
             <CardHeader>
                 <CardTitle className="text-xl font-semibold flex items-center justify-between">
                 <span className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export default function NewsSentiment({ tickers }) {
                                 )}
                                 <ul className="space-y-2 mt-4">
                                     {d.articles.map((a) => (
-                                        <li key={a.url} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md">
+                                        <li key={a.url} className="bg-gray-100 dark:bg-gray-900 p-3 rounded-md">
                                             <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
                                                 {a.title}
                                             </a>

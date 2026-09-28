@@ -1,12 +1,13 @@
 "use client";
 import FollowUpForm from "@/components/custom/follow-up-form";
 import ModelToggle from "@/components/custom/model-toggle";
+import ThemeToggle from "@/components/custom/theme-toggle";
 import NewsSentiment from "@/components/custom/news-sentiment";
 import SearchForm from "@/components/custom/search-form";
 import StockInfo from "@/components/custom/stock-info";
 import StockResults from "@/components/custom/stock-results";
 import { requestJSON } from "@/lib/api-client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // The conversation lives for the browser session (survives a refresh,
 // cleared when the tab closes or on "New conversation").
@@ -42,7 +43,7 @@ const toHistory = (turns) =>
     .map((t) => ({
       question: t.request.question,
       summary: t.advice.summary ?? "",
-      tickers: (t.advice.picks ?? []).map((p) => p.ticker),
+      tickers: t.advice.picks?.length ? t.advice.picks.map((p) => p.ticker) : (t.advice.discussed ?? []),
       intent: t.advice.intent,
     }));
 
@@ -50,6 +51,8 @@ export default function Home() {
   const [turns, setTurns] = useState([]);
   const [restored, setRestored] = useState(false);
   const [model, setModel] = useState("backtested");
+  const [followUpDraft, setFollowUpDraft] = useState("");
+  const clearDraft = useCallback(() => setFollowUpDraft(""), []);
   const lastTurnRef = useRef(null);
   const isLoading = turns.some((t) => t.isLoading);
 
@@ -119,16 +122,18 @@ export default function Home() {
     run(turn.id, turn.request, turns.slice(0, turns.indexOf(turn)));
   };
 
-  const latestAdvice = [...turns].reverse().find((t) => t.advice)?.advice;
+  const latestAdvice = [...turns].reverse().find((t) => t.advice?.picks?.length)?.advice;
+  const askAbout = (pick) => setFollowUpDraft(`About ${pick.name} (${pick.ticker}): `);
   const lastTurn = turns.at(-1);
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto py-4 px-4">
+      <header className="border-b bg-white dark:bg-gray-900 shadow-sm">
+        <div className="container mx-auto py-4 px-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             Investor Agent 📈
           </h1>
+          <ThemeToggle />
         </div>
       </header>
       <main className="flex-1 p-8 overflow-auto">
@@ -156,6 +161,7 @@ export default function Home() {
                 error={turn.error}
                 isLoading={turn.isLoading}
                 onRetry={() => retry(turn)}
+                onAskAbout={askAbout}
               />
             </section>
           ))}
@@ -164,6 +170,8 @@ export default function Home() {
               onAsk={askFollowUp}
               onReset={() => setTurns([])}
               isLoading={isLoading}
+              draft={followUpDraft}
+              onDraftUsed={clearDraft}
             />
           )}
         </div>

@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircle, Info } from "lucide-react";
+import { AlertCircle, Info, MessageCircle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import { FactorBars, MetricGrid, ScoreDetails } from "./metrics";
+import MarkdownLite from "./markdown-lite";
 
 const STANCE_STYLES = {
     Buy: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -12,7 +13,7 @@ const STANCE_STYLES = {
     Avoid: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
 
-function PickCard({ pick, style }) {
+function PickCard({ pick, style, onAskAbout }) {
     return (
         <Card>
             <CardHeader className="pb-3">
@@ -114,13 +115,47 @@ function PickCard({ pick, style }) {
                 {pick.dataSource && pick.dataSource !== "Yahoo Finance" && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">Data: {pick.dataSource}</p>
                 )}
-                {pick.score && <ScoreDetails score={pick.score} style={style} />}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    {pick.score && <ScoreDetails score={pick.score} style={style} />}
+                    {onAskAbout && (
+                        <Button variant="outline" size="sm" onClick={() => onAskAbout(pick)}>
+                            <MessageCircle className="w-4 h-4 mr-1" /> Ask AI about {pick.ticker}
+                        </Button>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
 }
 
-export default function StockResults({ advice, error, isLoading, onRetry }) {
+function DiscussionAnswer({ advice }) {
+    return (
+        <Card className="mt-3">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    AI answer
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                {advice.answer ? <MarkdownLite text={advice.answer} /> : null}
+                {(advice.notes ?? []).map((note) => (
+                    <Alert key={note}>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{note}</AlertDescription>
+                    </Alert>
+                ))}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {advice.discussed?.length ? `About ${advice.discussed.join(", ")} · ` : ""}
+                    {advice.aiProvider ? `Answered by ${advice.aiProvider} (free tier) · ` : ""}
+                    Not financial advice.
+                </p>
+            </CardContent>
+        </Card>
+    );
+}
+
+export default function StockResults({ advice, error, isLoading, onRetry, onAskAbout }) {
     if (isLoading) {
         return (
             <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
@@ -142,6 +177,7 @@ export default function StockResults({ advice, error, isLoading, onRetry }) {
         );
     }
     if (!advice) return null;
+    if (advice.kind === "discussion") return <DiscussionAnswer advice={advice} />;
 
     const picks = advice.picks ?? [];
     const notes = advice.notes ?? [];
@@ -172,6 +208,7 @@ export default function StockResults({ advice, error, isLoading, onRetry }) {
                         {advice.intent?.theme ? ` · Theme: ${advice.intent.theme}` : ""}
                         {advice.screened ? ` · Screened ${advice.screened} stocks` : ""}
                         {asOf ? ` · Prices as of ${new Date(asOf).toLocaleString()}` : ""}
+                        {advice.aiProvider ? ` · AI: ${advice.aiProvider} (free tier)` : ""}
                     </p>
                     {notes.map((note) => (
                         <Alert key={note}>
@@ -182,7 +219,7 @@ export default function StockResults({ advice, error, isLoading, onRetry }) {
                 </CardContent>
             </Card>
             {picks.map((pick) => (
-                <PickCard key={pick.ticker} pick={pick} style={advice.intent?.style} />
+                <PickCard key={pick.ticker} pick={pick} style={advice.intent?.style} onAskAbout={onAskAbout} />
             ))}
         </div>
     );

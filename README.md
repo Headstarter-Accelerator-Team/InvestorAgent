@@ -19,7 +19,10 @@ Set these in `.env.local` for local development and in the Vercel project for de
 
 | Variable | Required | Used for |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | AI intent parsing and analysis (Groq) |
+| `GROQ_API_KEY` | Yes* | AI intent parsing, analysis and discussion (Groq free tier) |
+| `GEMINI_API_KEY` | No* | Free-tier fallback (Google AI Studio, Gemini Flash / Flash-Lite) |
+| `CEREBRAS_API_KEY` | No* | Free-tier fallback (Cerebras gpt-oss-120b) |
+| `OPENROUTER_API_KEY` | No* | Free-tier fallback (OpenRouter `:free` models only) |
 | `PINECONE_API_KEY` | Yes | Thematic company search (Pinecone `stocks` index) |
 | `HF_TOKEN` | Yes | Embeddings for thematic search (Hugging Face) |
 | `ALPHA_VAN_API` | No | Per-ticker news with sentiment (Alpha Vantage); falls back to Yahoo headlines |
@@ -30,6 +33,8 @@ Set these in `.env.local` for local development and in the Vercel project for de
 | `GROQ_MODEL`, `GROQ_FAST_MODEL` | No | Override the Groq models (defaults `openai/gpt-oss-120b`, `openai/gpt-oss-20b`) |
 
 Optional features switch on automatically when their variable is set.
+
+\* At least one LLM key is needed. `lib/llm.js` tries the providers in order on their free tiers only and moves on when one is rate-limited, so no paid credits are ever used (keep billing disabled on those accounts).
 
 `node scripts/eval.mjs http://localhost:3000` runs the 15-question grounding check.
 
